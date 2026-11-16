@@ -10,8 +10,8 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { AchievementsGrid, MOCK_ACHIEVEMENTS } from '@/components/achievements/achievements-grid'
 import { useFavoriteDrivers } from '@/contexts/favorite-drivers-context'
 import { cn } from '@/lib/utils'
-import { ridesApi } from '@/lib/api'
-import type { Driver, Ride } from '@/lib/mock-data'
+import { ridesApi, bookingsApi } from '@/lib/api'
+import type { Driver, Ride } from '@/lib/types'
 import useSWR from 'swr'
 
 export default function DriverProfilePage() {
@@ -24,7 +24,8 @@ export default function DriverProfilePage() {
   const isFavorite = isFavoriteDriver(driverId)
 
   // Buscar todas as caronas
-  const { data: allRides = [] } = useSWR<Ride[]>('rides', () => ridesApi.getAllRides())
+  const { data: allRidesData } = useSWR<{ data: Ride[] }>('rides', () => ridesApi.list())
+  const allRides = allRidesData?.data ?? []
   
   // Encontrar todas as caronas do motorista
   const driverRides = allRides.filter(ride => ride.driver.id === driverId)
@@ -65,15 +66,23 @@ export default function DriverProfilePage() {
     }
   }
 
-  const handleSolicitarSelecionadas = () => {
+  const [isRequesting, setIsRequesting] = useState(false)
+
+  const handleSolicitarSelecionadas = async () => {
     if (selectedRides.size === 0) return
-    
-    // Aqui você pode implementar a lógica para solicitar as caronas selecionadas
-    console.log('[v0] Solicitando caronas:', Array.from(selectedRides))
-    
-    // Exemplo: notificar o usuário
-    alert(`Solicitação realizada para ${selectedRides.size} carona(s)!`)
-    setSelectedRides(new Set())
+    setIsRequesting(true)
+    try {
+      await Promise.all(
+        Array.from(selectedRides).map((rideId) =>
+          bookingsApi.create({ rideId, seatsBooked: 1 })
+        )
+      )
+      setSelectedRides(new Set())
+    } catch {
+      // Falha silenciosa ate a Fase 3 (backend de reservas)
+    } finally {
+      setIsRequesting(false)
+    }
   }
 
   return (
@@ -233,12 +242,9 @@ export default function DriverProfilePage() {
                       <div className="text-xs text-muted-foreground mt-1">↓</div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs text-muted-foreground">
-                          {Math.round(
-                            new Date(ride.departureTime).getTime() - new Date().getTime()
-                          ) > 0
-                            ? 'Saída em '
-                            : 'Saída em '}
-                          {new Date(ride.departureTime).toLocaleTimeString('pt-BR', {
+                          Saída em {new Date(`${ride.date}T${ride.time}`).toLocaleString('pt-BR', {
+                            day: '2-digit',
+                            month: '2-digit',
                             hour: '2-digit',
                             minute: '2-digit',
                           })}
@@ -261,7 +267,7 @@ export default function DriverProfilePage() {
                     {/* Preço + vagas */}
                     <div className="border-t border-border pt-3 flex items-center justify-between text-sm">
                       <span className="font-semibold text-primary">
-                        R$ {ride.pricePerPerson}
+                        R$ {ride.price}
                       </span>
                       <span className="text-muted-foreground text-xs">
                         {ride.availableSeats} lugar{ride.availableSeats !== 1 ? 'es' : ''}
@@ -289,9 +295,12 @@ export default function DriverProfilePage() {
             onClick={handleSolicitarSelecionadas}
             size="lg"
             className="w-full"
+            disabled={isRequesting}
           >
             <Check className="w-4 h-4 mr-2" />
-            Solicitar {selectedRides.size} carona{selectedRides.size !== 1 ? 's' : ''}
+            {isRequesting
+              ? 'Enviando...'
+              : `Solicitar ${selectedRides.size} carona${selectedRides.size !== 1 ? 's' : ''}`}
           </Button>
         </div>
       )}

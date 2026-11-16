@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useAuth } from '@/contexts/auth-context'
 import { Button } from '@/components/ui/button'
 import { SearchBar } from '@/components/home/search-bar'
@@ -52,7 +52,9 @@ export function HeroSection() {
 
           {/* Search Bar */}
           <div className="max-w-3xl mx-auto mb-10">
-            <SearchBar variant="hero" />
+            <Suspense fallback={<div className="h-16 rounded-2xl bg-zinc-900 animate-pulse" />}>
+              <SearchBar variant="hero" />
+            </Suspense>
           </div>
 
           {/* CTAs */}

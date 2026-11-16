@@ -4,7 +4,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { CheckCircle2, Ticket, Search, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { RideTicket } from '@/components/ride-detail/ride-ticket'
-import { mockRides } from '@/lib/mock-data'
+import { useRide } from '@/hooks/use-api'
 
 // Gera um código de protocolo determinístico a partir do id (evita mismatch de hidratação)
 function buildCode(rideId: string): string {
@@ -20,7 +20,15 @@ export default function ReservaConfirmadaPage() {
   const params = useParams()
   const router = useRouter()
   const rideId = params.id as string
-  const ride = mockRides.find((r) => r.id === rideId)
+  const { data: ride, isLoading } = useRide(rideId)
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh] p-4">
+        <p className="text-muted-foreground text-sm">Carregando carona...</p>
+      </div>
+    )
+  }
 
   if (!ride) {
     return (

@@ -7,7 +7,7 @@ import Image from 'next/image'
 import { useState, useMemo } from 'react'
 import { useMessages } from '@/contexts/messages-context'
 import { useAuth } from '@/contexts/auth-context'
-import { Empty } from '@/components/ui/empty'
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, EmptyContent } from '@/components/ui/empty'
 import { cn } from '@/lib/utils'
 
 export function ConversationList() {
@@ -28,15 +28,22 @@ export function ConversationList() {
 
   if (conversations.length === 0) {
     return (
-      <Empty
-        icon={<MessageCircle className="h-10 w-10 text-muted-foreground" />}
-        title="Nenhuma conversa ainda"
-        description="Envie uma mensagem para um motorista para começar uma conversa."
-        action={{
-          label: 'Explorar caronas',
-          href: '/dashboard/buscar'
-        }}
-      />
+      <Empty>
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <MessageCircle className="text-muted-foreground" />
+          </EmptyMedia>
+          <EmptyTitle>Nenhuma conversa ainda</EmptyTitle>
+          <EmptyDescription>
+            Envie uma mensagem para um motorista para começar uma conversa.
+          </EmptyDescription>
+        </EmptyHeader>
+        <EmptyContent>
+          <Link href="/dashboard/buscar" className="text-primary underline underline-offset-4">
+            Explorar caronas
+          </Link>
+        </EmptyContent>
+      </Empty>
     )
   }
 

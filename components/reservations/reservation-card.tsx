@@ -6,7 +6,7 @@ import { Calendar, Clock, MapPin, User, MessageCircle, Star } from 'lucide-react
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { formatPrice } from '@/lib/mock-data'
+import { formatPrice } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
 export type ReservationStatus = 'confirmed' | 'pending' | 'completed' | 'cancelled'

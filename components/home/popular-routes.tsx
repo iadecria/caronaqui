@@ -1,7 +1,7 @@
 import { ArrowRight } from "lucide-react"
 import { useRouter } from "next/navigation"
-import type { PopularRoute } from "@/lib/mock-data"
-import { formatPrice } from "@/lib/mock-data"
+import type { PopularRoute } from "@/lib/types"
+import { formatPrice } from "@/lib/format"
 
 interface PopularRoutesProps {
   routes: PopularRoute[]

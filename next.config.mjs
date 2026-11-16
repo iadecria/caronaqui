@@ -72,7 +72,7 @@ const pwaConfig = withPWA({
 const nextConfig = {
   // Removido output: 'export' para permitir rotas dinamicas como /carona/[id]
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   images: {
     unoptimized: true,

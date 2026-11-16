@@ -1,8 +1,8 @@
 'use client'
 
 import { MapPin, CalendarDays, Clock, Users, Star } from 'lucide-react'
-import type { Ride } from '@/lib/mock-data'
-import { formatDate, formatPrice } from '@/lib/mock-data'
+import type { Ride } from '@/lib/types'
+import { formatDate, formatPrice } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
 interface RideTicketProps {

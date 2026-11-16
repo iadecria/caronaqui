@@ -29,8 +29,8 @@ import {
 import { useIsMobile } from '@/hooks/use-mobile'
 import { useBooking, type PendingBooking } from '@/contexts/booking-context'
 import { useAuth } from '@/contexts/auth-context'
-import type { Ride } from '@/lib/mock-data'
-import { formatPrice, formatDate } from '@/lib/mock-data'
+import type { Ride } from '@/lib/types'
+import { formatPrice, formatDate } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { Spinner } from '@/components/ui/spinner'
 
@@ -84,7 +84,7 @@ export function ReservationModal({ ride }: ReservationModalProps) {
   if (!ride) return null
 
   const maxSeats = ride.availableSeats
-  const pricePerSeat = parseInt(ride.price.replace(/[^\d]/g, ''))
+  const pricePerSeat = ride.price
   const totalPrice = pricePerSeat * seats
 
   const handleDecrementSeats = () => {
@@ -257,7 +257,7 @@ export function ReservationModal({ ride }: ReservationModalProps) {
             >
               {isLoading ? (
                 <>
-                  <Spinner size="sm" />
+                  <Spinner className="size-4" />
                   {isAuthenticated ? 'Confirmando...' : 'Fazendo login...'}
                 </>
               ) : (

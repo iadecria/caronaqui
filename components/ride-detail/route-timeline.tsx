@@ -1,7 +1,7 @@
 'use client'
 
 import { Route, ArrowDownToLine, ArrowUpFromLine } from 'lucide-react'
-import type { Ride, RouteStop } from '@/lib/mock-data'
+import type { Ride, RouteStop } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 interface RouteTimelineProps {
@@ -20,7 +20,7 @@ function buildStops(ride: Ride): RouteStop[] {
       type: 'pickup',
       city: ride.origin.city,
       neighborhood: ride.origin.neighborhood,
-      address: ride.origin.meetingPoint,
+      address: ride.origin.meetingPoint ?? '',
       time: ride.time,
       lat: ride.originCoords?.lat ?? 0,
       lng: ride.originCoords?.lng ?? 0,
@@ -30,7 +30,7 @@ function buildStops(ride: Ride): RouteStop[] {
       type: 'dropoff',
       city: ride.destination.city,
       neighborhood: ride.destination.neighborhood,
-      address: ride.destination.dropOffPoint,
+      address: ride.destination.dropOffPoint ?? '',
       time: '',
       lat: ride.destinationCoords?.lat ?? 0,
       lng: ride.destinationCoords?.lng ?? 0,

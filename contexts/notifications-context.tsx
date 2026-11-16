@@ -1,20 +1,9 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
+import type { Notification, NotificationType } from '@/lib/types'
 
-export type NotificationType = 'reservation' | 'message' | 'reminder' | 'rating' | 'system'
-
-export interface Notification {
-  id: string
-  type: NotificationType
-  title: string
-  message: string
-  timestamp: string
-  read: boolean
-  rideId?: string
-  userId?: string
-  actionUrl?: string
-}
+export type { NotificationType }
 
 interface NotificationsContextType {
   notifications: Notification[]

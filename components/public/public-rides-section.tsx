@@ -1,6 +1,6 @@
 'use client'
 
-import { mockRides, mockPopularRoutes } from '@/lib/mock-data'
+import { useRides, usePopularRoutes } from '@/hooks/use-api'
 import { RideCard } from '@/components/home/ride-card'
 import { PopularRoutes } from '@/components/home/popular-routes'
 import { Button } from '@/components/ui/button'
@@ -9,9 +9,11 @@ import { ArrowRightIcon } from 'lucide-react'
 
 export function PublicRidesSection() {
   const { setShowLoginModal } = useAuth()
-  
+  const { data: rides = [] } = useRides()
+  const { data: popularRoutes = [] } = usePopularRoutes()
+
   // Mostrar apenas 6 caronas na landing page
-  const displayRides = mockRides.slice(0, 6)
+  const displayRides = rides.slice(0, 6)
 
   return (
     <section id="rotas-populares" className="py-16 md:py-24 bg-background">
@@ -28,7 +30,7 @@ export function PublicRidesSection() {
               </p>
             </div>
           </div>
-          <PopularRoutes routes={mockPopularRoutes} />
+          <PopularRoutes routes={popularRoutes} />
         </div>
 
         {/* Available Rides */}

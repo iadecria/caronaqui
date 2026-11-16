@@ -58,7 +58,7 @@ function FitBounds({ origin, destination }: {
     // Aguarda o mapa estar pronto antes de fazer fitBounds
     const timer = setTimeout(() => {
       try {
-        if (map && map._container) {
+        if (map && map.getContainer()) {
           map.fitBounds(bounds, { padding: [80, 80], duration: 0.5 })
         }
       } catch (error) {

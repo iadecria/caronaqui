@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import type { Ride } from "@/lib/mock-data"
+import type { Ride } from "@/lib/types"
 import { RideCard } from "./ride-card"
 
 interface RidesListProps {

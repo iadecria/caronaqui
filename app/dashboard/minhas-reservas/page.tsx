@@ -1,158 +1,98 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo } from 'react'
 import { Calendar, History, Ticket } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ReservationCard, type Reservation } from '@/components/reservations/reservation-card'
+import { useBookings } from '@/hooks/use-api'
+import { bookingsApi } from '@/lib/api'
+import { useAuth } from '@/contexts/auth-context'
+import { useMessages } from '@/contexts/messages-context'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import type { Booking } from '@/lib/types'
 
-// Mock reservations
-const mockReservations: Reservation[] = [
-  {
-    id: 'res1',
-    rideId: 'r1',
-    status: 'confirmed',
-    seats: 2,
-    totalPrice: 170,
+function toReservation(booking: Booking): Reservation {
+  const ride = booking.ride
+  return {
+    id: booking.id,
+    rideId: ride.id,
+    status: booking.status,
+    seats: booking.seatsBooked,
+    totalPrice: ride.price * booking.seatsBooked,
     origin: {
-      city: 'Rio de Janeiro',
-      state: 'RJ',
-      meetingPoint: 'Estacao Central do Brasil'
+      city: ride.origin.city,
+      state: ride.origin.state,
+      meetingPoint: ride.origin.meetingPoint ?? '',
     },
     destination: {
-      city: 'Sao Paulo',
-      state: 'SP'
+      city: ride.destination.city,
+      state: ride.destination.state,
     },
-    date: '2026-04-18',
-    time: '06:00',
+    date: ride.date,
+    time: ride.time,
     driver: {
-      id: 'd1',
-      name: 'Carlos Silva',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Carlos',
-      rating: 4.9
-    }
-  },
-  {
-    id: 'res2',
-    rideId: 'r2',
-    status: 'pending',
-    seats: 1,
-    totalPrice: 90,
-    origin: {
-      city: 'Sao Paulo',
-      state: 'SP',
-      meetingPoint: 'Shopping Ibirapuera'
+      id: ride.driver.id,
+      name: ride.driver.name,
+      avatar: ride.driver.avatar,
+      rating: ride.driver.rating,
     },
-    destination: {
-      city: 'Rio de Janeiro',
-      state: 'RJ'
-    },
-    date: '2026-04-20',
-    time: '07:30',
-    driver: {
-      id: 'd2',
-      name: 'Ana Oliveira',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ana',
-      rating: 4.8
-    }
-  },
-  {
-    id: 'res3',
-    rideId: 'r3',
-    status: 'completed',
-    seats: 1,
-    totalPrice: 80,
-    origin: {
-      city: 'Rio de Janeiro',
-      state: 'RJ',
-      meetingPoint: 'Metro Saens Pena'
-    },
-    destination: {
-      city: 'Sao Paulo',
-      state: 'SP'
-    },
-    date: '2026-04-10',
-    time: '05:30',
-    driver: {
-      id: 'd3',
-      name: 'Roberto Santos',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Roberto',
-      rating: 4.7
-    },
-    canRate: true
-  },
-  {
-    id: 'res4',
-    rideId: 'r4',
-    status: 'completed',
-    seats: 2,
-    totalPrice: 190,
-    origin: {
-      city: 'Sao Paulo',
-      state: 'SP',
-      meetingPoint: 'Metro Ana Rosa'
-    },
-    destination: {
-      city: 'Rio de Janeiro',
-      state: 'RJ'
-    },
-    date: '2026-04-05',
-    time: '14:00',
-    driver: {
-      id: 'd4',
-      name: 'Fernanda Costa',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Fernanda',
-      rating: 5.0
-    },
-    canRate: false
-  },
-  {
-    id: 'res5',
-    rideId: 'r5',
-    status: 'cancelled',
-    seats: 1,
-    totalPrice: 88,
-    origin: {
-      city: 'Rio de Janeiro',
-      state: 'RJ',
-      meetingPoint: 'Metro Botafogo'
-    },
-    destination: {
-      city: 'Sao Paulo',
-      state: 'SP'
-    },
-    date: '2026-03-28',
-    time: '08:00',
-    driver: {
-      id: 'd5',
-      name: 'Marcos Pereira',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Marcos',
-      rating: 4.6
-    }
+    canRate: booking.status === 'completed',
   }
-]
+}
 
 export default function MinhasReservasPage() {
-  const [reservations] = useState(mockReservations)
-  
+  const router = useRouter()
+  const { isAuthenticated, openLoginModal } = useAuth()
+  const { startConversation } = useMessages()
+  const { data: bookings, mutate } = useBookings()
+
+  const reservations = useMemo<Reservation[]>(
+    () => (bookings ?? []).map(toReservation),
+    [bookings]
+  )
+
   const upcomingReservations = reservations.filter(r => r.status === 'confirmed' || r.status === 'pending')
   const pastReservations = reservations.filter(r => r.status === 'completed' || r.status === 'cancelled')
 
   const handleRate = (reservationId: string) => {
-    console.log('Rating reservation:', reservationId)
-    // TODO: Open rating modal
+    router.push(`/dashboard/avaliar/${reservationId}`)
   }
 
-  const handleCancel = (reservationId: string) => {
-    console.log('Cancelling reservation:', reservationId)
-    // TODO: Confirm and cancel
+  const handleCancel = async (reservationId: string) => {
+    if (!isAuthenticated) {
+      openLoginModal('/dashboard/minhas-reservas')
+      return
+    }
+    try {
+      await bookingsApi.cancel(reservationId)
+      mutate()
+    } catch {
+      // Falha silenciosa ate o backend estar disponivel (Fase 3)
+    }
   }
 
   const handleMessage = (driverId: string) => {
-    console.log('Messaging driver:', driverId)
-    // TODO: Open chat
+    if (!isAuthenticated) {
+      openLoginModal('/dashboard/minhas-reservas')
+      return
+    }
+    const reservation = reservations.find(r => r.driver.id === driverId)
+    if (!reservation) return
+    startConversation({
+      rideId: reservation.rideId,
+      driverId: reservation.driver.id,
+      driverName: reservation.driver.name,
+      driverAvatar: reservation.driver.avatar,
+      rideOrigin: reservation.origin.city,
+      rideDestination: reservation.destination.city,
+      rideDate: reservation.date,
+      ridePrice: reservation.totalPrice,
+      initialMessage: 'Olá! Tenho uma reserva nesta carona.',
+    })
+    router.push('/dashboard/mensagens')
   }
 
   return (

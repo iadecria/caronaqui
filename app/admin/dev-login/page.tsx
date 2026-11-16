@@ -3,6 +3,7 @@
 import { useAuth } from '@/contexts/auth-context'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
+import { notFound } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Lock, Zap } from 'lucide-react'
@@ -16,6 +17,11 @@ export default function DevLoginPage() {
       router.push('/admin')
     }
   }, [isAuthenticated, router])
+
+  // Feature-gated: rota inexistente em producao (NODE_ENV e constante em build)
+  if (process.env.NODE_ENV === 'production') {
+    notFound()
+  }
 
   const handleDevLogin = () => {
     devLogin()

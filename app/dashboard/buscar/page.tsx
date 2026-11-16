@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { mockRides, mockPopularRoutes } from '@/lib/mock-data'
+import { useRides, usePopularRoutes } from '@/hooks/use-api'
 import { SearchFilters, defaultFilters, type SearchFiltersState } from '@/components/search/search-filters'
 import { SearchResults } from '@/components/search/search-results'
 import { TimeQuickSelect } from '@/components/search/time-quick-select'
@@ -84,12 +84,19 @@ function calculateTimeWindowClient(time: string, hoursWindow: number): { start: 
   return { start, end }
 }
 
-export default function BuscarPage() {
+function BuscarContent() {
   const { user, isAuthenticated } = useAuth()
   const isMobile = useIsMobile()
   const searchParams = useSearchParams()
   const router = useRouter()
-  
+
+  const { data: rides = [] } = useRides({
+    originCity: searchParams.get('from') || undefined,
+    destinationCity: searchParams.get('to') || undefined,
+    date: searchParams.get('date') || undefined,
+  })
+  const { data: popularRoutes = [] } = usePopularRoutes()
+
   // Estado para controlar se esta montado (client-side)
   const [isMounted, setIsMounted] = useState(false)
   
@@ -140,8 +147,8 @@ export default function BuscarPage() {
           displayName: fromCity,
           city: fromCity,
           state: fromState || 'SP',
-          fullAddress: `${fromCity}, ${fromState || 'SP'}`,
           neighborhood: '',
+          street: '',
           lat: getCityCoordinates(fromCity)?.lat || -23.5505,
           lng: getCityCoordinates(fromCity)?.lng || -46.6333,
           type: 'city'
@@ -154,8 +161,8 @@ export default function BuscarPage() {
           displayName: toCity,
           city: toCity,
           state: toState || 'RJ',
-          fullAddress: `${toCity}, ${toState || 'RJ'}`,
           neighborhood: '',
+          street: '',
           lat: getCityCoordinates(toCity)?.lat || -22.9068,
           lng: getCityCoordinates(toCity)?.lng || -43.1729,
           type: 'city'
@@ -277,7 +284,7 @@ export default function BuscarPage() {
                 </div>
                 <h2 className="text-base font-semibold text-foreground">Rotas populares</h2>
               </div>
-              <PopularRoutes routes={mockPopularRoutes} />
+              <PopularRoutes routes={popularRoutes} />
             </section>
           </div>
         ) : (
@@ -370,7 +377,7 @@ export default function BuscarPage() {
 
               {/* Resultados com scroll - flex-1 para ocupar espaço restante */}
               <div className="flex-1 min-h-0 overflow-y-auto">
-                <SearchResults rides={mockRides} filters={resultsFilters} />
+                <SearchResults rides={rides} filters={resultsFilters} />
               </div>
             </div>
 
@@ -402,5 +409,13 @@ export default function BuscarPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function BuscarPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Carregando busca...</div>}>
+      <BuscarContent />
+    </Suspense>
   )
 }

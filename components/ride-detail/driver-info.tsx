@@ -3,7 +3,7 @@
 import { Star, Shield, Car, Heart, ChevronRight } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import type { Driver } from '@/lib/mock-data'
+import type { Driver } from '@/lib/types'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { AchievementsGrid, MOCK_ACHIEVEMENTS } from '@/components/achievements/achievements-grid'
@@ -21,16 +21,16 @@ interface DriverInfoProps {
 
 export function DriverInfo({ driver, carModel, carColor }: DriverInfoProps) {
   const { toggleFavoriteDriver, isFavoriteDriver } = useFavoriteDrivers()
-  const { isLoggedIn } = useAuth()
+  const { isAuthenticated } = useAuth()
   const { addNotification } = useNotifications()
   const isFavorite = isFavoriteDriver(driver.id)
 
   const handleToggleFavorite = () => {
-    if (!isLoggedIn) {
+    if (!isAuthenticated) {
       addNotification({
         type: 'info',
         title: 'Faça login',
-        description: 'Você precisa estar logado para favoritar motoristas.',
+        message: 'Você precisa estar logado para favoritar motoristas.',
       })
       return
     }

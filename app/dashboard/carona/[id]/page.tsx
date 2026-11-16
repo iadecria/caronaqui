@@ -19,7 +19,7 @@ import { Button } from '@/components/ui/button'
 import { RouteTimeline } from '@/components/ride-detail/route-timeline'
 import { DriverInfo } from '@/components/ride-detail/driver-info'
 import { RideDetailsCard } from '@/components/ride-detail/ride-details-card'
-import { mockRides } from '@/lib/mock-data'
+import { useRide } from '@/hooks/use-api'
 import { useFavorites } from '@/contexts/favorites-context'
 import { useAuth } from '@/contexts/auth-context'
 import { useMessages } from '@/contexts/messages-context'
@@ -38,9 +38,17 @@ export default function RideDetailPage() {
   const { startConversation } = useMessages()
 
   const rideId = params.id as string
-  const ride = mockRides.find(r => r.id === rideId)
+  const { data: ride, isLoading: isLoadingRide } = useRide(rideId)
 
   const [showDetails, setShowDetails] = useState(false)
+
+  if (isLoadingRide) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh] p-4">
+        <p className="text-muted-foreground text-sm">Carregando carona...</p>
+      </div>
+    )
+  }
 
   if (!ride) {
     return (

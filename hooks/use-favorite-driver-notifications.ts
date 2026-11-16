@@ -3,7 +3,7 @@
 import { useEffect, useCallback } from 'react'
 import { useFavoriteDrivers } from '@/contexts/favorite-drivers-context'
 import { useNotifications } from '@/contexts/notifications-context'
-import type { Ride } from '@/lib/mock-data'
+import type { Ride } from '@/lib/types'
 
 /**
  * Hook que monitora caronas publicadas e notifica quando um motorista favorito publica
@@ -26,12 +26,7 @@ export function useFavoriteDriverNotifications(rides: Ride[]) {
             type: 'info',
             title: 'Motorista favorito publicou carona!',
             message: `${ride.driver.name} acabou de publicar uma carona de ${ride.origin.city} para ${ride.destination.city}`,
-            action: {
-              label: 'Ver carona',
-              onClick: () => {
-                window.location.href = `/dashboard/carona/${ride.id}`
-              }
-            }
+            actionUrl: `/dashboard/carona/${ride.id}`,
           })
           sessionStorage.setItem(notificationKey, 'true')
         }

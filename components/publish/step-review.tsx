@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { usePublish } from '@/contexts/publish-context'
-import { formatPrice, formatDate } from '@/lib/mock-data'
+import { formatPrice, formatDate } from '@/lib/format'
 import { format, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { PUBLISH } from '@/lib/identity'

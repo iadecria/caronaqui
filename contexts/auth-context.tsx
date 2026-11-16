@@ -14,6 +14,8 @@ export interface User {
   memberSince: string
   role?: 'user' | 'admin' | 'dev'
   gender?: 'male' | 'female' | 'other'
+  rating?: number
+  totalRides?: number
 }
 
 // Acao pendente que sera executada apos login bem-sucedido
@@ -30,6 +32,7 @@ interface AuthContextType {
   register: (name: string, email: string, password: string) => Promise<boolean>
   devLogin: (type?: 'dev' | 'user' | 'admin') => void
   logout: () => void
+  updateUser: (updates: Partial<User>) => void
   showLoginModal: boolean
   setShowLoginModal: (show: boolean) => void
   loginRedirectPath: string | null
@@ -167,16 +170,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [_onLoginSuccess])
 
   const devLogin = useCallback((type: 'dev' | 'user' | 'admin' = 'user') => {
+    // Feature-gated: nunca disponivel em producao
+    if (process.env.NODE_ENV === 'production') return
+
     let userToLogin = mockUser
-    
+
     if (type === 'dev') {
       userToLogin = mockUserDev
     } else if (type === 'admin') {
       userToLogin = mockUserAdmin
     }
-    
+
     _onLoginSuccess(userToLogin)
   }, [_onLoginSuccess])
+
+  const updateUser = useCallback((updates: Partial<User>) => {
+    setUser(prev => (prev ? { ...prev, ...updates } : prev))
+  }, [])
 
   const logout = useCallback(() => {
     setUser(null)
@@ -199,6 +209,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         register,
         devLogin,
         logout,
+        updateUser,
         showLoginModal,
         setShowLoginModal,
         loginRedirectPath,

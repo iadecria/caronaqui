@@ -2,8 +2,8 @@
 
 import { Star, Users, PawPrint, Cigarette, Luggage, ShieldCheck, Heart, ChevronRight, AlertCircle } from "lucide-react"
 import Image from "next/image"
-import type { Ride } from "@/lib/mock-data"
-import { formatDate, formatPrice } from "@/lib/mock-data"
+import type { Ride } from "@/lib/types"
+import { formatDate, formatPrice } from "@/lib/format"
 import { useAuth } from "@/contexts/auth-context"
 import { useFavorites } from "@/contexts/favorites-context"
 import { cn } from "@/lib/utils"

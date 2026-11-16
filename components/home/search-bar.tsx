@@ -46,8 +46,8 @@ export function SearchBar({ variant = 'default', onSearchChange }: SearchBarProp
       setOriginData({
         city: fromCity,
         state: fromState || 'SP',
-        fullAddress: `${fromCity}, ${fromState || 'SP'}`,
         neighborhood: '',
+        street: '',
         lat: 0,
         lng: 0,
         displayName: fromCity, // Importante: adiciona displayName
@@ -61,8 +61,8 @@ export function SearchBar({ variant = 'default', onSearchChange }: SearchBarProp
       setDestinationData({
         city: toCity,
         state: toState || 'SP',
-        fullAddress: `${toCity}, ${toState || 'SP'}`,
         neighborhood: '',
+        street: '',
         lat: 0,
         lng: 0,
         displayName: toCity, // Importante: adiciona displayName

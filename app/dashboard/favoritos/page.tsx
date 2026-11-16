@@ -7,33 +7,35 @@ import { useFavorites } from '@/contexts/favorites-context'
 import { useFavoriteDrivers } from '@/contexts/favorite-drivers-context'
 import { useAuth } from '@/contexts/auth-context'
 import { RidesList } from '@/components/home/rides-list'
-import { mockRides } from '@/lib/mock-data'
-import { Empty } from '@/components/ui/empty'
+import { useRides } from '@/hooks/use-api'
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, EmptyContent } from '@/components/ui/empty'
 import { Button } from '@/components/ui/button'
-import { FAVORITES, LABELS } from '@/lib/identity'
+import { LABELS } from '@/lib/identity'
 import { cn } from '@/lib/utils'
+import type { Driver } from '@/lib/types'
 
 export default function FavoritesPage() {
   const router = useRouter()
-  const { isLoggedIn } = useAuth()
+  const { isAuthenticated } = useAuth()
   const { favorites } = useFavorites()
-  const { favoriteDriverIds, removeFavoriteDriver } = useFavoriteDrivers()
+  const { favoriteDrivers, removeFavoriteDriver } = useFavoriteDrivers()
+  const { data: rides = [] } = useRides()
 
-  const favoriteRides = mockRides.filter(ride => favorites.includes(ride.id))
-  
+  const favoriteRides = rides.filter(ride => favorites.includes(ride.id))
+
   // Extrair motoristas únicos favoritados de todas as caronas
-  const favoritedDriversSet = new Map<string, any>()
+  const favoritedDriversSet = new Map<string, Driver>()
   favoriteRides.forEach(ride => {
     if (!favoritedDriversSet.has(ride.driver.id)) {
       favoritedDriversSet.set(ride.driver.id, ride.driver)
     }
   })
-  
+
   const favoritedDrivers = Array.from(favoritedDriversSet.values()).filter(driver =>
-    favoriteDriverIds.includes(driver.id)
+    favoriteDrivers.includes(driver.id)
   )
 
-  if (!isLoggedIn) {
+  if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-background p-4 flex items-center justify-center">
         <div className="text-center space-y-4 max-w-sm">
@@ -64,15 +66,22 @@ export default function FavoritesPage() {
         {favoriteRides.length > 0 ? (
           <RidesList rides={favoriteRides} />
         ) : (
-          <Empty
-            icon={<Heart className="h-10 w-10 md:h-12 md:w-12 text-muted-foreground" />}
-            title="Nenhuma carona favorita"
-            description="Clique no coração das caronas que você curtir para encontrá-las depois."
-            action={{
-              label: LABELS.searchRide,
-              href: "/dashboard/buscar"
-            }}
-          />
+          <Empty>
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <Heart className="text-muted-foreground" />
+              </EmptyMedia>
+              <EmptyTitle>Nenhuma carona favorita</EmptyTitle>
+              <EmptyDescription>
+                Clique no coração das caronas que você curtir para encontrá-las depois.
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              <Button asChild>
+                <a href="/dashboard/buscar">{LABELS.searchRide}</a>
+              </Button>
+            </EmptyContent>
+          </Empty>
         )}
       </div>
 
@@ -127,13 +136,8 @@ export default function FavoritesPage() {
                   </button>
                 </div>
 
-                {/* Veículo + Membro */}
+                {/* Membro desde */}
                 <div className="flex gap-3 text-sm text-muted-foreground px-1">
-                  {driver.vehicle && (
-                    <span className="truncate">
-                      <span className="font-medium text-foreground">{driver.vehicle.model}</span>
-                    </span>
-                  )}
                   {driver.memberSince && (
                     <span>
                       Membro desde{' '}
@@ -162,15 +166,22 @@ export default function FavoritesPage() {
             ))}
           </div>
         ) : (
-          <Empty
-            icon={<Heart className="h-10 w-10 md:h-12 md:w-12 text-muted-foreground" />}
-            title="Nenhum motorista favorito"
-            description="Explore caronas e favorite motoristas que você gosta para acompanhá-los!"
-            action={{
-              label: "Explorar Caronas",
-              href: "/dashboard"
-            }}
-          />
+          <Empty>
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <Heart className="text-muted-foreground" />
+              </EmptyMedia>
+              <EmptyTitle>Nenhum motorista favorito</EmptyTitle>
+              <EmptyDescription>
+                Explore caronas e favorite motoristas que você gosta para acompanhá-los!
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              <Button asChild>
+                <a href="/dashboard">Explorar Caronas</a>
+              </Button>
+            </EmptyContent>
+          </Empty>
         )}
       </div>
     </div>

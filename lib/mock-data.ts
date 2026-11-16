@@ -1,87 +1,18 @@
-// Tipos para o CaronAqui
-export interface Driver {
-  id: string
-  name: string
-  avatar: string
-  rating: number
-  totalRides: number
-  verifiedPhone: boolean
-  verifiedId: boolean
-  memberSince: string
-}
+// Dados mockados do CaronAqui.
+// Os tipos vem de lib/types.ts; os helpers vem de lib/format.ts.
+// Reexportamos ambos para compatibilidade durante a migracao.
 
-export interface Passenger {
-  id: string
-  name: string
-  avatar: string
-  rating: number
-  origin: {
-    city: string
-    neighborhood: string
-    lat?: number
-    lng?: number
-  }
-  destination: {
-    city: string
-    neighborhood: string
-    lat?: number
-    lng?: number
-  }
-  seatsBooked: number
-  status: 'confirmed' | 'pending' | 'cancelled'
-}
+import type {
+  Driver,
+  Passenger,
+  Ride,
+  RouteStop,
+  PopularRoute,
+} from '@/lib/types'
 
-export interface RouteStop {
-  id: string
-  type: 'pickup' | 'dropoff'
-  city: string
-  neighborhood: string
-  address: string
-  time: string
-  lat: number
-  lng: number
-  passenger?: Passenger
-}
+export type { Driver, Passenger, Ride, RouteStop, PopularRoute }
 
-export interface Ride {
-  id: string
-  driver: Driver
-  origin: {
-    city: string
-    state: string
-    neighborhood: string
-    meetingPoint: string
-  }
-  destination: {
-    city: string
-    state: string
-    neighborhood: string
-    dropOffPoint: string
-  }
-  date: string
-  time: string
-  price: number
-  availableSeats: number
-  totalSeats: number
-  carModel: string
-  carColor: string
-  allowsPets: boolean
-  allowsSmoking: boolean
-  allowsLuggage: boolean
-  description?: string
-  passengers?: Passenger[]
-  stops?: RouteStop[]
-  originCoords?: { lat: number; lng: number }
-  destinationCoords?: { lat: number; lng: number }
-}
-
-export interface PopularRoute {
-  id: string
-  from: string
-  to: string
-  averagePrice: number
-  ridesAvailable: number
-}
+export { formatDate, formatPrice } from '@/lib/format'
 
 // Motoristas fictícios
 export const mockDrivers: Driver[] = [
@@ -860,24 +791,3 @@ export const mockPopularRoutes: PopularRoute[] = [
     ridesAvailable: 4
   }
 ]
-
-// Função para formatar data
-export function formatDate(dateString: string): string {
-  const date = new Date(dateString + 'T00:00:00Z')
-  const weekdays = ['dom.', 'seg.', 'ter.', 'qua.', 'qui.', 'sex.', 'sab.']
-  const months = ['jan.', 'fev.', 'mar.', 'abr.', 'mai.', 'jun.', 'jul.', 'ago.', 'set.', 'out.', 'nov.', 'dez.']
-  
-  const weekday = weekdays[date.getUTCDay()]
-  const day = date.getUTCDate()
-  const month = months[date.getUTCMonth()]
-  
-  return `${weekday}, ${day} de ${month}`
-}
-
-// Função para formatar preço
-export function formatPrice(price: number): string {
-  return price.toLocaleString('pt-BR', {
-    style: 'currency',
-    currency: 'BRL'
-  })
-}

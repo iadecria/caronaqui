@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState, useEffect } from 'react'
-import type { Ride } from '@/lib/mock-data'
+import type { Ride } from '@/lib/types'
 import { RidesList } from '@/components/home/rides-list'
 import { Car, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'

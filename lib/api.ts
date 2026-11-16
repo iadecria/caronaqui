@@ -1,5 +1,22 @@
-// Configuracao da API para integracao com backend Laravel
-// Substitua NEXT_PUBLIC_API_URL pela URL do seu backend
+// Camada de integracao com o backend Laravel.
+// Os tipos publicos vem de @/lib/types (camelCase). O backend responde em
+// snake_case, entao convertemos as chaves na fronteira via snakeToCamel.
+
+import type {
+  Booking,
+  Conversation,
+  CreateBookingData,
+  CreateRideData,
+  Message,
+  Notification,
+  PaginationMeta,
+  PendingReview,
+  PopularRoute,
+  Review,
+  Ride,
+  RideFilters,
+  UserProfile,
+} from '@/lib/types'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
 
@@ -7,7 +24,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
 export class ApiError extends Error {
   status: number
   data: Record<string, unknown>
-  
+
   constructor(message: string, status: number, data: Record<string, unknown> = {}) {
     super(message)
     this.name = 'ApiError'
@@ -16,41 +33,78 @@ export class ApiError extends Error {
   }
 }
 
+// Converte recursivamente chaves snake_case para camelCase
+function snakeToCamel(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(snakeToCamel)
+  }
+  if (value && typeof value === 'object') {
+    const out: Record<string, unknown> = {}
+    for (const [key, val] of Object.entries(value as Record<string, unknown>)) {
+      const camelKey = key.replace(/_([a-z0-9])/g, (_, c: string) => c.toUpperCase())
+      out[camelKey] = snakeToCamel(val)
+    }
+    return out
+  }
+  return value
+}
+
+// Converte recursivamente chaves camelCase para snake_case (para envios)
+function camelToSnake(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(camelToSnake)
+  }
+  if (value && typeof value === 'object') {
+    const out: Record<string, unknown> = {}
+    for (const [key, val] of Object.entries(value as Record<string, unknown>)) {
+      const snakeKey = key.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`)
+      out[snakeKey] = camelToSnake(val)
+    }
+    return out
+  }
+  return value
+}
+
 // Funcao base para chamadas API
 export async function api<T>(
   endpoint: string,
   options?: RequestInit & { skipAuth?: boolean }
 ): Promise<T> {
   const token = typeof window !== 'undefined' ? localStorage.getItem('caronaqui_token') : null
-  
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
+
+  const isFormData = options?.body instanceof FormData
+
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
   }
-  
+
+  if (!isFormData) {
+    headers['Content-Type'] = 'application/json'
+  }
+
   if (token && !options?.skipAuth) {
     headers['Authorization'] = `Bearer ${token}`
   }
-  
+
   const response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
     headers: {
       ...headers,
-      ...options?.headers,
+      ...(options?.headers as Record<string, string> | undefined),
     },
   })
-  
-  const data = await response.json().catch(() => ({}))
-  
+
+  const raw = await response.json().catch(() => ({}))
+
   if (!response.ok) {
     throw new ApiError(
-      data.message || response.statusText,
+      (raw as { message?: string }).message || response.statusText,
       response.status,
-      data
+      raw as Record<string, unknown>
     )
   }
-  
-  return data as T
+
+  return snakeToCamel(raw) as T
 }
 
 // ============================================
@@ -58,20 +112,7 @@ export async function api<T>(
 // ============================================
 
 export interface LoginResponse {
-  user: {
-    id: string
-    name: string
-    email: string
-    avatar: string
-    phone?: string
-    verified_phone: boolean
-    verified_id: boolean
-    gender?: 'male' | 'female' | 'other'
-    role: 'user' | 'admin' | 'dev'
-    rating: number
-    total_rides: number
-    created_at: string
-  }
+  user: UserProfile
   token: string
 }
 
@@ -79,7 +120,7 @@ export interface RegisterData {
   name: string
   email: string
   password: string
-  password_confirmation: string
+  passwordConfirmation: string
   phone?: string
 }
 
@@ -90,20 +131,20 @@ export const authApi = {
       body: JSON.stringify({ email, password }),
       skipAuth: true,
     }),
-    
+
   register: (data: RegisterData) =>
     api<LoginResponse>('/auth/register', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify(camelToSnake(data)),
       skipAuth: true,
     }),
-    
+
   logout: () =>
     api<{ message: string }>('/auth/logout', { method: 'POST' }),
-    
+
   me: () =>
-    api<{ user: LoginResponse['user'] }>('/auth/me'),
-    
+    api<{ user: UserProfile }>('/auth/me'),
+
   refresh: () =>
     api<{ token: string }>('/auth/refresh', { method: 'POST' }),
 }
@@ -112,80 +153,43 @@ export const authApi = {
 // CARONAS
 // ============================================
 
-export interface RideFilters {
-  origin_city?: string
-  destination_city?: string
-  date?: string
-  seats?: number
-  max_price?: number
-  allows_pets?: boolean
-  ladies_only?: boolean
-}
-
-export interface CreateRideData {
-  origin_city: string
-  origin_state: string
-  origin_neighborhood?: string
-  origin_meeting_point?: string
-  origin_lat?: number
-  origin_lng?: number
-  destination_city: string
-  destination_state: string
-  destination_neighborhood?: string
-  destination_dropoff_point?: string
-  destination_lat?: number
-  destination_lng?: number
-  date: string
-  time: string
-  price: number
-  total_seats: number
-  car_model: string
-  car_color: string
-  allows_pets?: boolean
-  allows_smoking?: boolean
-  allows_luggage?: boolean
-  has_ac?: boolean
-  ladies_only?: boolean
-  is_regular?: boolean
-  weekdays?: string[]
-  description?: string
-}
-
 export const ridesApi = {
   list: (filters?: RideFilters) => {
     const params = new URLSearchParams()
     if (filters) {
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
-          params.append(key, String(value))
-        }
-      })
+      if (filters.originCity) params.append('origin_city', filters.originCity)
+      if (filters.destinationCity) params.append('destination_city', filters.destinationCity)
+      if (filters.date) params.append('date', filters.date)
+      if (filters.seats !== undefined) params.append('seats', String(filters.seats))
+      if (filters.maxPrice !== undefined) params.append('max_price', String(filters.maxPrice))
+      if (filters.allowsPets !== undefined) params.append('allows_pets', String(filters.allowsPets))
+      if (filters.ladiesOnly !== undefined) params.append('ladies_only', String(filters.ladiesOnly))
     }
     const query = params.toString()
     return api<{ data: Ride[]; meta: PaginationMeta }>(`/rides${query ? `?${query}` : ''}`)
   },
-  
+
   get: (id: string) =>
     api<{ data: Ride }>(`/rides/${id}`),
-    
+
   create: (data: CreateRideData) =>
     api<{ data: Ride }>('/rides', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify(camelToSnake(data)),
     }),
-    
+
   update: (id: string, data: Partial<CreateRideData>) =>
     api<{ data: Ride }>(`/rides/${id}`, {
       method: 'PUT',
-      body: JSON.stringify(data),
+      body: JSON.stringify(camelToSnake(data)),
     }),
-    
+
   cancel: (id: string) =>
     api<{ message: string }>(`/rides/${id}`, { method: 'DELETE' }),
-    
+
   myRides: () =>
     api<{ data: Ride[] }>('/rides/my'),
-    
+
   popularRoutes: () =>
     api<{ data: PopularRoute[] }>('/rides/popular-routes'),
 }
@@ -194,38 +198,25 @@ export const ridesApi = {
 // RESERVAS
 // ============================================
 
-export interface CreateBookingData {
-  ride_id: string
-  seats_booked: number
-  pickup_city?: string
-  pickup_neighborhood?: string
-  pickup_lat?: number
-  pickup_lng?: number
-  dropoff_city?: string
-  dropoff_neighborhood?: string
-  dropoff_lat?: number
-  dropoff_lng?: number
-}
-
 export const bookingsApi = {
   list: () =>
     api<{ data: Booking[] }>('/bookings'),
-    
+
   get: (id: string) =>
     api<{ data: Booking }>(`/bookings/${id}`),
-    
+
   create: (data: CreateBookingData) =>
     api<{ data: Booking }>('/bookings', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify(camelToSnake(data)),
     }),
-    
+
   confirm: (id: string) =>
     api<{ data: Booking }>(`/bookings/${id}/confirm`, { method: 'PUT' }),
-    
+
   cancel: (id: string) =>
     api<{ data: Booking }>(`/bookings/${id}/cancel`, { method: 'PUT' }),
-    
+
   complete: (id: string) =>
     api<{ data: Booking }>(`/bookings/${id}/complete`, { method: 'PUT' }),
 }
@@ -237,16 +228,16 @@ export const bookingsApi = {
 export const messagesApi = {
   conversations: () =>
     api<{ data: Conversation[] }>('/conversations'),
-    
+
   messages: (conversationId: string) =>
     api<{ data: Message[] }>(`/conversations/${conversationId}`),
-    
+
   send: (receiverId: string, content: string, rideId?: string) =>
     api<{ data: Message }>('/messages', {
       method: 'POST',
       body: JSON.stringify({ receiver_id: receiverId, content, ride_id: rideId }),
     }),
-    
+
   markRead: (id: string) =>
     api<{ success: boolean }>(`/messages/${id}/read`, { method: 'PUT' }),
 }
@@ -258,13 +249,13 @@ export const messagesApi = {
 export const favoritesApi = {
   list: () =>
     api<{ data: Ride[] }>('/favorites'),
-    
+
   add: (rideId: string) =>
     api<{ success: boolean }>('/favorites', {
       method: 'POST',
       body: JSON.stringify({ ride_id: rideId }),
     }),
-    
+
   remove: (rideId: string) =>
     api<{ success: boolean }>(`/favorites/${rideId}`, { method: 'DELETE' }),
 }
@@ -276,10 +267,10 @@ export const favoritesApi = {
 export const notificationsApi = {
   list: () =>
     api<{ data: Notification[] }>('/notifications'),
-    
+
   markAllRead: () =>
     api<{ success: boolean }>('/notifications/read-all', { method: 'PUT' }),
-    
+
   markRead: (id: string) =>
     api<{ success: boolean }>(`/notifications/${id}/read`, { method: 'PUT' }),
 }
@@ -291,24 +282,23 @@ export const notificationsApi = {
 export const usersApi = {
   profile: (id: string) =>
     api<{ data: UserProfile }>(`/users/${id}`),
-    
+
   updateProfile: (data: Partial<UserProfile>) =>
     api<{ data: UserProfile }>('/users/profile', {
       method: 'PUT',
-      body: JSON.stringify(data),
+      body: JSON.stringify(camelToSnake(data)),
     }),
-    
+
   uploadAvatar: (file: File) => {
     const formData = new FormData()
     formData.append('avatar', file)
-    
-    return api<{ avatar_url: string }>('/users/avatar', {
+
+    return api<{ avatarUrl: string }>('/users/avatar', {
       method: 'POST',
       body: formData,
-      headers: {}, // Remove Content-Type para FormData
     })
   },
-  
+
   reviews: (id: string) =>
     api<{ data: Review[] }>(`/users/${id}/reviews`),
 }
@@ -318,175 +308,12 @@ export const usersApi = {
 // ============================================
 
 export const reviewsApi = {
-  create: (data: { ride_id: string; reviewed_id: string; rating: number; comment?: string; type: 'driver' | 'passenger' }) =>
+  create: (data: { rideId: string; reviewedId: string; rating: number; comment?: string; type: 'driver' | 'passenger' }) =>
     api<{ data: Review }>('/reviews', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify(camelToSnake(data)),
     }),
-    
+
   pending: () =>
     api<{ data: PendingReview[] }>('/reviews/pending'),
-}
-
-// ============================================
-// TIPOS AUXILIARES
-// ============================================
-
-interface PaginationMeta {
-  current_page: number
-  last_page: number
-  per_page: number
-  total: number
-}
-
-interface Ride {
-  id: string
-  driver: {
-    id: string
-    name: string
-    avatar: string
-    rating: number
-    total_rides: number
-    verified_phone: boolean
-    verified_id: boolean
-  }
-  origin: {
-    city: string
-    state: string
-    neighborhood: string
-    meeting_point: string
-    lat?: number
-    lng?: number
-  }
-  destination: {
-    city: string
-    state: string
-    neighborhood: string
-    dropoff_point: string
-    lat?: number
-    lng?: number
-  }
-  date: string
-  time: string
-  price: number
-  available_seats: number
-  total_seats: number
-  car_model: string
-  car_color: string
-  allows_pets: boolean
-  allows_smoking: boolean
-  allows_luggage: boolean
-  has_ac: boolean
-  ladies_only: boolean
-  description?: string
-  status: 'active' | 'completed' | 'cancelled'
-}
-
-interface PopularRoute {
-  from: string
-  to: string
-  average_price: number
-  rides_available: number
-}
-
-interface Booking {
-  id: string
-  ride: Ride
-  passenger: {
-    id: string
-    name: string
-    avatar: string
-    rating: number
-  }
-  seats_booked: number
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed'
-  pickup?: {
-    city: string
-    neighborhood: string
-    lat?: number
-    lng?: number
-  }
-  dropoff?: {
-    city: string
-    neighborhood: string
-    lat?: number
-    lng?: number
-  }
-  created_at: string
-}
-
-interface Conversation {
-  id: string
-  participant: {
-    id: string
-    name: string
-    avatar: string
-  }
-  last_message: {
-    content: string
-    created_at: string
-    is_mine: boolean
-  }
-  unread_count: number
-  ride?: {
-    id: string
-    origin_city: string
-    destination_city: string
-  }
-}
-
-interface Message {
-  id: string
-  sender_id: string
-  content: string
-  read: boolean
-  created_at: string
-}
-
-interface Notification {
-  id: string
-  title: string
-  message: string
-  type: 'booking' | 'message' | 'review' | 'system' | 'promo'
-  data?: Record<string, unknown>
-  read: boolean
-  created_at: string
-}
-
-interface UserProfile {
-  id: string
-  name: string
-  email: string
-  avatar: string
-  phone?: string
-  verified_phone: boolean
-  verified_id: boolean
-  gender?: 'male' | 'female' | 'other'
-  rating: number
-  total_rides: number
-  member_since: string
-  bio?: string
-}
-
-interface Review {
-  id: string
-  reviewer: {
-    id: string
-    name: string
-    avatar: string
-  }
-  rating: number
-  comment?: string
-  type: 'driver' | 'passenger'
-  created_at: string
-}
-
-interface PendingReview {
-  ride: Ride
-  user_to_review: {
-    id: string
-    name: string
-    avatar: string
-  }
-  type: 'driver' | 'passenger'
 }

@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import type { Ride, RouteStop } from '@/lib/mock-data'
+import type { Ride, RouteStop } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 // Icones customizados para diferentes tipos de marcadores

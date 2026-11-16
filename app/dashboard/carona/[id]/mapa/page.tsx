@@ -18,7 +18,8 @@ import {
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
-import { mockRides, type Ride, type Passenger, type RouteStop } from '@/lib/mock-data'
+import { useRide } from '@/hooks/use-api'
+import type { Ride, Passenger, RouteStop } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/auth-context'
 import dynamic from 'next/dynamic'
@@ -44,7 +45,15 @@ export default function RideMapPage() {
   const [selectedStop, setSelectedStop] = useState<string | null>(null)
   
   const rideId = params.id as string
-  const ride = mockRides.find(r => r.id === rideId)
+  const { data: ride, isLoading } = useRide(rideId)
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full p-4">
+        <p className="text-muted-foreground text-sm">Carregando carona...</p>
+      </div>
+    )
+  }
 
   if (!ride) {
     return (

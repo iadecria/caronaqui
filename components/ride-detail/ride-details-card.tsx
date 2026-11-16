@@ -1,8 +1,8 @@
 'use client'
 
 import { Clock, MapPin, Users, PawPrint, Cigarette, Luggage } from 'lucide-react'
-import type { Ride } from '@/lib/mock-data'
-import { formatDate, formatPrice } from '@/lib/mock-data'
+import type { Ride } from '@/lib/types'
+import { formatDate, formatPrice } from '@/lib/format'
 import { Badge } from '@/components/ui/badge'
 import { LABELS } from '@/lib/identity'
 
