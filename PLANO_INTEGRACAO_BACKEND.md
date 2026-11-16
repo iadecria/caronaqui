@@ -80,6 +80,18 @@ Depois de corrigir os 20 itens acima, rodar `npx tsc --noEmit` (tem que dar 0 er
 
 **Critério de aceite:** cadastro + login + refresh mantém o usuário logado; `GET /auth/me` devolve o perfil; `pnpm dev` do frontend com `NEXT_PUBLIC_API_URL=http://localhost:8000/api` loga de verdade.
 
+**Status Fase 1 (parcial, commit `dc58dd3`):**
+- ✅ 1.1 `backend/` com **Laravel 12** (não 11) + `composer`, `.gitignore`, `README`.
+- ✅ 1.2 Migrations UUID na ordem da spec: `users` → `vehicles` → `rides` → `bookings` → `messages` → `reviews` → `favorites` → `notifications` → `reports`.
+- ✅ 1.3 Sanctum: register/login/logout/me/refresh (testado: register → login → `GET /auth/me` com token).
+- ✅ 1.4 Perfil: `GET /users/{id}`, `GET /users/{id}/reviews`, `PUT /users/profile`.
+- ✅ 1.5 Seed dev: 3 usuários + 5 viagens na Dutra (senha `senha12345`).
+- ✅ 1.6 CORS restrito a `FRONTEND_URL` + `localhost:3000`.
+- ⬜ 1.7 Frontend: `auth-context` ainda usa login fake; falta ligar em `authApi` e persistir `caronaqui_token`.
+- ⬜ 1.8 Teste manual de "login sobrevive ao refresh" no frontend.
+
+Pendente para fechar a Fase 1: 1.7 (integrar `auth-context` → `authApi`, gravar token, hidratar via `authApi.me()`, `updateUser` → `usersApi.updateProfile`) e 1.8 (teste). Banco local em SQLite por padrão (`.env`); MySQL só em produção.
+
 ---
 
 ## Fase 2 — Viagens e busca (3–5 dias)
