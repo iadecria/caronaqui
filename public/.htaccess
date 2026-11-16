@@ -1,0 +1,62 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Remover .html de URLs
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^(.*)$ index.html [QSA,L]
+  
+  # Cache control para arquivos estaticos
+  <IfModule mod_headers.c>
+    # Imagens
+    <FilesMatch "\.(jpg|jpeg|png|gif|webp|svg)$">
+      Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+    
+    # Fontes
+    <FilesMatch "\.(eot|ttf|otf|woff|woff2)$">
+      Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+    
+    # JavaScript/CSS
+    <FilesMatch "\.(js|css)$">
+      Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+    
+    # Service Worker - nunca cache
+    <FilesMatch "^(sw|service-worker)\.js$">
+      Header set Cache-Control "public, max-age=0, must-revalidate"
+    </FilesMatch>
+    
+    # Manifest
+    <FilesMatch "manifest\.json$">
+      Header set Cache-Control "public, max-age=3600"
+      Header set Content-Type "application/manifest+json"
+    </FilesMatch>
+    
+    # HTML pages - revalidate
+    <FilesMatch "\.html$">
+      Header set Cache-Control "public, max-age=0, must-revalidate"
+    </FilesMatch>
+  </IfModule>
+  
+  # Compressao GZIP
+  <IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
+  </IfModule>
+  
+  # HTTPS redirect
+  <IfModule mod_rewrite.c>
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+  </IfModule>
+</IfModule>
+
+# Security headers
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set X-XSS-Protection "1; mode=block"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>

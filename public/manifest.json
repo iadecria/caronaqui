@@ -1,0 +1,51 @@
+{
+  "name": "CaronAqui - Caronas Via Dutra",
+  "short_name": "CaronAqui",
+  "description": "Encontre e ofereca caronas na Via Dutra entre Rio de Janeiro e Sao Paulo. Viaje com economia e seguranca.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f5f5",
+  "theme_color": "#50C878",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "pt-BR",
+  "categories": ["travel", "transportation", "social"],
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.jpg",
+      "sizes": "180x180",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Buscar Carona",
+      "short_name": "Buscar",
+      "description": "Encontre caronas disponiveis",
+      "url": "/dashboard/buscar",
+      "icons": [{ "src": "/icons/icon-192x192.jpg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Publicar Carona",
+      "short_name": "Publicar",
+      "description": "Ofereca uma carona",
+      "url": "/dashboard/publicar",
+      "icons": [{ "src": "/icons/icon-192x192.jpg", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": [],
+  "prefer_related_applications": false
+}
