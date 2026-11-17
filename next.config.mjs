@@ -71,6 +71,8 @@ const pwaConfig = withPWA({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Removido output: 'export' para permitir rotas dinamicas como /carona/[id]
+  // Turbopack (padrao no Next 16) convive com o webpack config do next-pwa
+  turbopack: {},
   typescript: {
     ignoreBuildErrors: true,
   },

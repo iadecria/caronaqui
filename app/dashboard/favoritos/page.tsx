@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils'
 
 export default function FavoritesPage() {
   const router = useRouter()
-  const { isLoggedIn } = useAuth()
+  const { isLoggedIn, openLoginModal } = useAuth()
   const { favorites } = useFavorites()
   const { favoriteDriverIds, removeFavoriteDriver } = useFavoriteDrivers()
 
@@ -42,7 +42,7 @@ export default function FavoritesPage() {
           <p className="text-muted-foreground text-sm">
             Você precisa estar autenticado para visualizar e gerenciar seus favoritos.
           </p>
-          <Button onClick={() => router.push('/login')} className="w-full">
+          <Button onClick={() => openLoginModal('/dashboard/favoritos')} className="w-full">
             Fazer Login
           </Button>
         </div>

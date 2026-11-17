@@ -14,6 +14,8 @@ export interface User {
   memberSince: string
   role?: 'user' | 'admin' | 'dev'
   gender?: 'male' | 'female' | 'other'
+  rating?: number
+  totalRides?: number
 }
 
 // Acao pendente que sera executada apos login bem-sucedido
@@ -25,11 +27,13 @@ export type PendingAction = {
 interface AuthContextType {
   user: User | null
   isAuthenticated: boolean
+  isLoggedIn: boolean
   isLoading: boolean
   login: (email: string, password: string) => Promise<boolean>
   register: (name: string, email: string, password: string) => Promise<boolean>
   devLogin: (type?: 'dev' | 'user' | 'admin') => void
   logout: () => void
+  updateUser: (data: Partial<User>) => void
   showLoginModal: boolean
   setShowLoginModal: (show: boolean) => void
   loginRedirectPath: string | null
@@ -54,6 +58,8 @@ const mockUser: User = {
   verifiedId: true,
   memberSince: '2024-01-15',
   role: 'user',
+  rating: 4.9,
+  totalRides: 12,
   gender: 'male'
 }
 
@@ -67,6 +73,8 @@ const mockUserDev: User = {
   verifiedId: true,
   memberSince: '2024-01-01',
   role: 'dev',
+  rating: 5.0,
+  totalRides: 48,
   gender: 'female'
 }
 
@@ -80,6 +88,8 @@ const mockUserAdmin: User = {
   verifiedId: true,
   memberSince: '2023-01-01',
   role: 'admin',
+  rating: 5.0,
+  totalRides: 0,
   gender: 'male'
 }
 
@@ -178,6 +188,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     _onLoginSuccess(userToLogin)
   }, [_onLoginSuccess])
 
+  const updateUser = useCallback((data: Partial<User>) => {
+    setUser(prev => (prev ? { ...prev, ...data } : prev))
+  }, [])
+
   const logout = useCallback(() => {
     setUser(null)
     setLoginRedirectPath(null)
@@ -194,11 +208,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         isAuthenticated: !!user,
+        isLoggedIn: !!user,
         isLoading,
         login,
         register,
         devLogin,
         logout,
+        updateUser,
         showLoginModal,
         setShowLoginModal,
         loginRedirectPath,

@@ -23,15 +23,10 @@ export function useFavoriteDriverNotifications(rides: Ride[]) {
         const notificationKey = `notified_${ride.id}`
         if (!sessionStorage.getItem(notificationKey)) {
           addNotification({
-            type: 'info',
+            type: 'system',
             title: 'Motorista favorito publicou carona!',
             message: `${ride.driver.name} acabou de publicar uma carona de ${ride.origin.city} para ${ride.destination.city}`,
-            action: {
-              label: 'Ver carona',
-              onClick: () => {
-                window.location.href = `/dashboard/carona/${ride.id}`
-              }
-            }
+            actionUrl: `/dashboard/carona/${ride.id}`,
           })
           sessionStorage.setItem(notificationKey, 'true')
         }

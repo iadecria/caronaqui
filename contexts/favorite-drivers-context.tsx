@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect, useCallback, type React
 
 interface FavoriteDriversContextType {
   favoriteDrivers: string[]
+  favoriteDriverIds: string[]
   addFavoriteDriver: (driverId: string) => void
   removeFavoriteDriver: (driverId: string) => void
   toggleFavoriteDriver: (driverId: string) => void
@@ -78,6 +79,7 @@ export function FavoriteDriversProvider({ children }: { children: ReactNode }) {
     <FavoriteDriversContext.Provider
       value={{
         favoriteDrivers,
+        favoriteDriverIds: favoriteDrivers,
         addFavoriteDriver,
         removeFavoriteDriver,
         toggleFavoriteDriver,

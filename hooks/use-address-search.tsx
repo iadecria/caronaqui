@@ -15,7 +15,8 @@ export interface AddressSuggestion {
   city: string
   state: string
   neighborhood: string
-  street: string
+  street?: string
+  fullAddress?: string
   lat: number
   lng: number
   type: 'city' | 'landmark' | 'address'

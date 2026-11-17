@@ -40,7 +40,7 @@ function FitBoundsCom({ from, to }: { from: RouteMapProps['from']; to: RouteMapP
     // Aguarda o mapa estar totalmente pronto antes de fazer fitBounds
     const timer = setTimeout(() => {
       try {
-        if (map && map._container) {
+        if (map && map.getContainer()) {
           map.fitBounds(bounds, { padding: [50, 50], duration: 0.5 })
         }
       } catch (error) {

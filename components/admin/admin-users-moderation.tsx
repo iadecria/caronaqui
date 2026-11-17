@@ -50,7 +50,7 @@ const users = [
 ]
 
 export function AdminUsersModeration() {
-  const [selectedUser, setSelectedUser] = useState(users[0])
+  const [selectedUser, setSelectedUser] = useState<(typeof users)[number] | null>(users[0])
 
   const pendingUsers = users.filter(u => u.status === 'Aguardando Validação')
 

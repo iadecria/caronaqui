@@ -84,7 +84,7 @@ export function ReservationModal({ ride }: ReservationModalProps) {
   if (!ride) return null
 
   const maxSeats = ride.availableSeats
-  const pricePerSeat = parseInt(ride.price.replace(/[^\d]/g, ''))
+  const pricePerSeat = typeof ride.price === 'number' ? ride.price : parseInt(String(ride.price).replace(/[^\d]/g, '')) || 0
   const totalPrice = pricePerSeat * seats
 
   const handleDecrementSeats = () => {
@@ -257,7 +257,7 @@ export function ReservationModal({ ride }: ReservationModalProps) {
             >
               {isLoading ? (
                 <>
-                  <Spinner size="sm" />
+                  <Spinner className="h-4 w-4 animate-spin" />
                   {isAuthenticated ? 'Confirmando...' : 'Fazendo login...'}
                 </>
               ) : (

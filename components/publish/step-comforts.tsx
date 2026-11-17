@@ -55,12 +55,19 @@ export function StepComforts() {
           const isActive = formData[option.key]
           
           return (
-            <button
+            <div
               key={option.key}
-              type="button"
+              role="button"
+              tabIndex={0}
               onClick={() => toggleComfort(option.key)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  toggleComfort(option.key)
+                }
+              }}
               className={cn(
-                "w-full flex items-center justify-between p-4 rounded-xl border transition-all",
+                "w-full flex items-center justify-between p-4 rounded-xl border transition-all cursor-pointer",
                 isActive 
                   ? "border-primary bg-primary/5" 
                   : "border-border bg-card hover:border-muted-foreground/30"
@@ -92,7 +99,7 @@ export function StepComforts() {
                 onCheckedChange={() => toggleComfort(option.key)}
                 aria-label={option.title}
               />
-            </button>
+            </div>
           )
         })}
       </div>

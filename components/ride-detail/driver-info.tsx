@@ -28,9 +28,9 @@ export function DriverInfo({ driver, carModel, carColor }: DriverInfoProps) {
   const handleToggleFavorite = () => {
     if (!isLoggedIn) {
       addNotification({
-        type: 'info',
+        type: 'system',
         title: 'Faça login',
-        description: 'Você precisa estar logado para favoritar motoristas.',
+        message: 'Você precisa estar logado para favoritar motoristas.',
       })
       return
     }

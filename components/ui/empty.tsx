@@ -1,8 +1,23 @@
 import { cva, type VariantProps } from 'class-variance-authority'
+import Link from 'next/link'
 
 import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 
-function Empty({ className, ...props }: React.ComponentProps<'div'>) {
+function Empty({
+  className,
+  icon,
+  title,
+  description,
+  action,
+  children,
+  ...props
+}: React.ComponentProps<'div'> & {
+  icon?: React.ReactNode
+  title?: React.ReactNode
+  description?: React.ReactNode
+  action?: { label: string; href?: string; onClick?: () => void }
+}) {
   return (
     <div
       data-slot="empty"
@@ -11,7 +26,27 @@ function Empty({ className, ...props }: React.ComponentProps<'div'>) {
         className,
       )}
       {...props}
-    />
+    >
+      {icon && <EmptyMedia variant="icon">{icon}</EmptyMedia>}
+      {(title || description) && (
+        <EmptyHeader>
+          {title && <EmptyTitle>{title}</EmptyTitle>}
+          {description && <EmptyDescription>{description}</EmptyDescription>}
+        </EmptyHeader>
+      )}
+      {action && (
+        <EmptyContent>
+          {action.href ? (
+            <Button asChild>
+              <Link href={action.href}>{action.label}</Link>
+            </Button>
+          ) : (
+            <Button onClick={action.onClick}>{action.label}</Button>
+          )}
+        </EmptyContent>
+      )}
+      {children}
+    </div>
   )
 }
 

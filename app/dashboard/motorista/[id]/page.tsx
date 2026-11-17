@@ -10,9 +10,8 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { AchievementsGrid, MOCK_ACHIEVEMENTS } from '@/components/achievements/achievements-grid'
 import { useFavoriteDrivers } from '@/contexts/favorite-drivers-context'
 import { cn } from '@/lib/utils'
-import { ridesApi } from '@/lib/api'
-import type { Driver, Ride } from '@/lib/mock-data'
-import useSWR from 'swr'
+import { mockRides, mockDrivers, type Driver, type Ride } from '@/lib/mock-data'
+import { useNotifications } from '@/contexts/notifications-context'
 
 export default function DriverProfilePage() {
   const params = useParams()
@@ -21,16 +20,18 @@ export default function DriverProfilePage() {
   
   const [selectedRides, setSelectedRides] = useState<Set<string>>(new Set())
   const { toggleFavoriteDriver, isFavoriteDriver } = useFavoriteDrivers()
+  const { addNotification } = useNotifications()
   const isFavorite = isFavoriteDriver(driverId)
 
-  // Buscar todas as caronas
-  const { data: allRides = [] } = useSWR<Ride[]>('rides', () => ridesApi.getAllRides())
+  // Caronas mockadas (modo demo)
+  const allRides: Ride[] = mockRides
   
   // Encontrar todas as caronas do motorista
   const driverRides = allRides.filter(ride => ride.driver.id === driverId)
   
-  // Encontrar informações do motorista pela primeira carona ou usar dados mockados
-  const driver: Driver = driverRides[0]?.driver || {
+  // Dados do motorista: carona, lista de motoristas ou fallback
+  const driver: Driver = driverRides[0]?.driver ||
+    mockDrivers.find(d => d.id === driverId) || {
     id: driverId,
     name: 'Motorista',
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=default',
@@ -69,10 +70,12 @@ export default function DriverProfilePage() {
     if (selectedRides.size === 0) return
     
     // Aqui você pode implementar a lógica para solicitar as caronas selecionadas
-    console.log('[v0] Solicitando caronas:', Array.from(selectedRides))
-    
-    // Exemplo: notificar o usuário
-    alert(`Solicitação realizada para ${selectedRides.size} carona(s)!`)
+    addNotification({
+      type: 'reservation',
+      title: 'Solicitação enviada',
+      message: `Você solicitou ${selectedRides.size} carona(s) de ${driver.name}.`,
+      actionUrl: '/dashboard/minhas-reservas',
+    })
     setSelectedRides(new Set())
   }
 
@@ -234,11 +237,11 @@ export default function DriverProfilePage() {
                       <div className="flex-1 min-w-0">
                         <p className="text-xs text-muted-foreground">
                           {Math.round(
-                            new Date(ride.departureTime).getTime() - new Date().getTime()
+                            new Date(`${ride.date}T${ride.time}:00`).getTime() - new Date().getTime()
                           ) > 0
                             ? 'Saída em '
                             : 'Saída em '}
-                          {new Date(ride.departureTime).toLocaleTimeString('pt-BR', {
+                          {new Date(`${ride.date}T${ride.time}:00`).toLocaleTimeString('pt-BR', {
                             hour: '2-digit',
                             minute: '2-digit',
                           })}
@@ -261,7 +264,7 @@ export default function DriverProfilePage() {
                     {/* Preço + vagas */}
                     <div className="border-t border-border pt-3 flex items-center justify-between text-sm">
                       <span className="font-semibold text-primary">
-                        R$ {ride.pricePerPerson}
+                        R$ {ride.price}
                       </span>
                       <span className="text-muted-foreground text-xs">
                         {ride.availableSeats} lugar{ride.availableSeats !== 1 ? 'es' : ''}
